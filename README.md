@@ -1,19 +1,8 @@
-## Advanced Lane Finding
-[![Udacity - Self-Driving Car NanoDegree](https://s3.amazonaws.com/udacity-sdc/github/shield-carnd.svg)](http://www.udacity.com/drive)
+## Project report
 
-
-In this project, your goal is to write a software pipeline to identify the lane boundaries in a video, but the main output or product we want you to create is a detailed writeup of the project.  Check out the [writeup template](https://github.com/udacity/CarND-Advanced-Lane-Lines/blob/master/writeup_template.md) for this project and use it as a starting point for creating your own writeup.  
-
-Creating a great writeup:
 ---
-A great writeup should include the rubric points as well as your description of how you addressed each point.  You should include a detailed description of the code used in each step (with line-number references and code snippets where necessary), and links to other supporting documents or external references.  You should include images in your writeup to demonstrate how your code works with examples.  
 
-All that said, please be concise!  We're not looking for you to write a book here, just a brief description of how you passed each rubric point, and references to the relevant code :). 
-
-You're not required to use markdown for your writeup.  If you use another method please just submit a pdf of your writeup.
-
-The Project
----
+**Advanced Lane Finding Project**
 
 The goals / steps of this project are the following:
 
@@ -26,14 +15,143 @@ The goals / steps of this project are the following:
 * Warp the detected lane boundaries back onto the original image.
 * Output visual display of the lane boundaries and numerical estimation of lane curvature and vehicle position.
 
-The images for camera calibration are stored in the folder called `camera_cal`.  The images in `test_images` are for testing your pipeline on single frames.  If you want to extract more test images from the videos, you can simply use an image writing method like `cv2.imwrite()`, i.e., you can read the video in frame by frame as usual, and for frames you want to save for later you can write to an image file.  
+[//]: # (Image References)
 
-To help the reviewer examine your work, please save examples of the output from each stage of your pipeline in the folder called `output_images`, and include a description in your writeup for the project of what each image shows.    The video called `project_video.mp4` is the video your pipeline should work well on.  
+[image1]: ./examples/undistorted.png "Undistorted"
+[image2]: ./examples/sample_undistort.png "Calibration"
+[image3]: ./examples/masked_image.png "Mask"
+[image4]: ./examples/after_thresholding.png "color transforms and gradients"
+[image5]: ./examples/perspective.png "Birds-eye view"
+[image5]: ./examples/lane_finding_poly_fit.jpg "Fit Visual"
+[image7]: ./examples/final_image.png "Final image"
+[video1]: ./project_video.mp4 "Video"
 
-The `challenge_video.mp4` video is an extra (and optional) challenge for you if you want to test your pipeline under somewhat trickier conditions.  The `harder_challenge.mp4` video is another optional challenge and is brutal!
+## [Rubric](https://review.udacity.com/#!/rubrics/571/view) Points
 
-If you're feeling ambitious (again, totally optional though), don't stop there!  We encourage you to go out and take video of your own, calibrate your camera and show us how you would implement this project from scratch!
+---
 
-## How to write a README
-A well written README file can enhance your project and portfolio.  Develop your abilities to create professional README files by completing [this free course](https://www.udacity.com/course/writing-readmes--ud777).
+## README
+
+The code for implementing entire project is contained in a IPython notebook located in "./examples/example.ipynb". Details are provided below. 
+
+### Camera Calibration
+
+#### 1. Perform camera calibration. 
+
+Steps followed are as follows.
+* we use chessboard images to calibrate our camera. Multiple images are used to obtain information required to overcome camera distortion. 
+* Assuming the real world coordinates of chessboard coners are known (*imgpoints*), and detect the same from images (*objpoints*) using openCV function, findChessboardCorners. Using this information, we compute distortion coefficients and camera matrix with the help of calibrateCamera function in openCV. 
+* Original and undistorted images are shown below. Observe that, the curved lines in original image are due to distortion and are corrected in image on right.
+
+![alt text][image1]
+
+### Pipeline (single images)
+
+#### 1.Sample distortion corrected image
+
+* we pick a sample test image and undistort it using camera matrix and distortion coefficients computed in camera calibration section.
+
+* undistorted image is denoted as **image_undistort** in our code.
+
+![alt text][image2]
+
+#### 2. Masking of undistorted image
+
+* Next, I defined a portion of the image that could most likely contain all the lane information needed and process only this part of the image, thereby avoiding all the background inforamtion. 
+
+```python
+vertices = np.array([[(100,680),
+                      (575, 400), 
+                      (700, 400), 
+                      (1270,680)]], dtype=np.int32)
+
+```
+* This masked output is saved as **image** in our code. Further processing of lane detection is performed on this masked image.
+
+![alt text][image3]
+#### 3.Applying colour and gradient threasholds to obtain lane images
+
+* Fundamental goal here is to identify white and yellow lane lines. After careful reading for HLS and LAB colour spaces, I am of the opinion that LAB coulour space is sufficient for this purpose. 
+    * We can use Hue for detecting Yellow colour alone. Yellow is a combination of Red(Hue = 0 degree) and Green( Hue = 120 degree). Therefore an angular dimension of 30 degree to 90 degree seems to be a good threshold to start with. Based on conversion rules, for 8 bit images we can represent on 0 to 179 degrees. Hence the thresholds for H in this case to detect yellow lanes are (15, 45) and they correspond to 30 degrees to 90 degrees respectively. However, using B component in LAB coulur spaces yeilds better results. This component is better suited to capture *BLUE* and *YELLOW* components in an image. 
+    * White lines are captured using lightness value component. Note that both components are availble in LAB coulour space and hence we will use that colour space for all our lane detection. 
+
+* It is clear in the below output that B and L components of the image in LAB colour space captures yellow and white lanes in the image.
+
+``` python
+vertices = np.array([[(120,700),
+                      (575, 405), 
+                      (700, 405), 
+                      (1220,700)]], dtype=np.int32)
+
+```
+![alt text][image4]
+
+#### 3. Applying perspective transformation to compute radius of curvature
+
+* Next we applied perspective transforamtion to obtain bird's eye view of the lane. I performed a careful search for source and destination point to get a good warped image for straight lanes and used it for all images.
+
+```python
+
+src = np.float32(
+        [[580,460],
+         [710,460],
+         [200,720],
+         [1150,720]])
+dst = np.float32(
+        [[250,0],
+         [1000,0],
+         [250,700],
+         [1000,700]])
+```
+
+This resulted in the following source and destination points:
+
+| Source        | Destination   | 
+|:-------------:|:-------------:| 
+| 580, 460      | 250, 0        | 
+| 710, 460      | 1100,  0      |
+| 200, 720      | 250, 700      |
+| 1150, 720     | 1100, 700     |
+
+* Observerd that both lanes are parallel as shown below.
+
+![alt text][image5]
+
+#### 4. Detecting lane pixels and fitting a polynomial for lane markings
+
+* Next, using the bird's eye view of the processed lane image, a polynomial is fitted for the lane lines. 
+
+* Sliding window approach, recoginising clusters of lane pixels is followed to group pixels corresponding to left and right lanes as shown in below figure.
+
+* Numpy function *polyfit* is used to fit a second order polynomial for both lanes. 
+
+![alt text][image6]
+
+#### 5.Computing Radius of curvatue and deviation from center of lane in real world
+
+* Using the polynomial fit computed in above secition, radius of curvature of both lanes is computed for real world usage directly by using mathematical equations.
+
+* For conversion from pixels to real space, followed below scaling values:
+    - ym_per_pix = 30/260 # meters per pixel in y dimension
+    - xm_per_pix = 3.7/750 # meters per pixel in x dimension
+
+* Obtained these values using the fact that lane width is 3.7m and length of dotted lines is 10 ft and are spaced 30ft apart. 
+
+* Further, assuming that the camera is mounted on the center of the lane in a striaght lane, I computed the position with respect to center of lane by substracting the mid point of left fit  and right fit lanes and the center of image.
+
+#### 6. Example image of your result plotted back down onto the road such that the lane area is identified clearly.
+
+![alt text][image7]
+
+---
+
+### Pipeline (video)
+
+#### 1. Final video output.  
+
+Here's a [link to my video result](./output_images/result.mp4)
+
+---
+
+
 
