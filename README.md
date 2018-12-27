@@ -20,7 +20,7 @@ The goals / steps of this project are the following:
 [image1]: ./examples/undistorted.png "Undistorted"
 [image2]: ./examples/sample_undistort.png "Calibration"
 [image3]: ./examples/masked_image.png "Mask"
-[image4]: ./examples/after_thresholding.png "color transforms and gradients"
+[image4]: ./examples/colour_spaces.png "color transforms and gradients"
 [image5]: ./examples/perspective.png "Birds-eye view"
 [image5]: ./examples/lane_finding_poly_fit.jpg "Fit Visual"
 [image7]: ./examples/final_image.png "Final image"
@@ -71,8 +71,8 @@ vertices = np.array([[(100,680),
 ![alt text][image3]
 #### 3.Applying colour and gradient threasholds to obtain lane images
 
-* Fundamental goal here is to identify white and yellow lane lines. After careful reading for HLS and LAB colour spaces, I am of the opinion that LAB coulour space is sufficient for this purpose. 
-    * We can use Hue for detecting Yellow colour alone. Yellow is a combination of Red(Hue = 0 degree) and Green( Hue = 120 degree). Therefore an angular dimension of 30 degree to 90 degree seems to be a good threshold to start with. Based on conversion rules, for 8 bit images we can represent on 0 to 179 degrees. Hence the thresholds for H in this case to detect yellow lanes are (15, 45) and they correspond to 30 degrees to 90 degrees respectively. However, using B component in LAB coulur spaces yeilds better results. This component is better suited to capture *BLUE* and *YELLOW* components in an image. 
+* Fundamental goal here is to identify white and yellow lane lines. After careful reading of HLS and LAB colour spaces, I am of the opinion that LAB coulour space is sufficient for this purpose. 
+    * We can use Hue for detecting Yellow colour alone. Yellow is a combination of Red(Hue = 0 degree) and Green( Hue = 120 degree). Therefore an angular dimension of 30 degree to 90 degree seems to be a good threshold to start with. Based on conversion rules, for 8 bit images we can represent on 0 to 179 degrees. Hence the thresholds for H in this case to detect yellow lanes are (15, 45) and they correspond to 30 degrees to 90 degrees respectively. However, using B component in LAB coulur spaces yeilds better results. This component is better suited to capture *BLUE* and *YELLOW* colours in an image. 
     * White lines are captured using lightness value component. Note that both components are availble in LAB coulour space and hence we will use that colour space for all our lane detection. 
 
 * It is clear in the below output that B and L components of the image in LAB colour space captures yellow and white lanes in the image.
