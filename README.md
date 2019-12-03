@@ -153,5 +153,11 @@ Here's a [link to my video result](./output_images/result.mp4)
 
 ---
 
+### Discussion
 
+#### 1. Briefly discuss any problems / issues  faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
+
+* Still looking to validate radius of curvature computatations. Hence will need your input for the same. **As I am only using LAB colour space to obtain lane information, a yellow or white car in fromt of may disrupt my algorithm.** Need to implement skipping sliding window search, but will do it slowly after completing next project.  
+
+* I had some issues with running my code on video. Later noticed that I am reading test images and video frames in different colour spaces. Through this exercise, I learnt how to break up the video into sample iamges using timestamp. Can you share any more information on other ways to do this.
 
