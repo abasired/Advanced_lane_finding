@@ -22,7 +22,7 @@ The goals / steps of this project are the following:
 [image3]: ./examples/masked_image.png "Mask"
 [image4]: ./examples/colour_spaces.png "color transforms and gradients"
 [image5]: ./examples/perspective.png "Birds-eye view"
-[image6]: ./examples/lane_finding_poly_fit.jpg "Fit Visual"
+[image6]: ./examples/lane_finding_poly_fit.png "Fit Visual"
 [image7]: ./examples/final_image.png "Final image"
 [video1]: ./project_video.mp4 "Video"
 
